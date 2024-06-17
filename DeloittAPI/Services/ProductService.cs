@@ -1,7 +1,6 @@
-﻿using System;
-using DeloittAPI.Interface;
+﻿using DeloittAPI.Interface;
 using DeloittAPI.Models;
-using Microsoft.AspNetCore.Mvc;
+using DeloittAPI.Enum;
 
 namespace DeloittAPI.Services
 {
@@ -19,48 +18,81 @@ namespace DeloittAPI.Services
         };
         }
 
-        public Task<IEnumerable<Product>> GetAllProductsAsync()
+        public Task<ServiceResponse> GetAllProductsAsync()
         {
-            // Return all products
-            return Task.FromResult(_products.Values.AsEnumerable());
-        }
-
-        public Task<Response> SetProductCapacityAsync(int productId, int capacity)
-        {
-            if (!_products.ContainsKey(productId))
+            try
             {
-                _products.Add(productId, new Product { Id = productId, Quantity = 0, Capacity = capacity });
-                return Task.FromResult(new Response { Success = true, Message = "Product added successfully." });
+                // Return all products
+                return Task.FromResult(ServiceResponse.CreateSuccess(_products.Values.AsEnumerable()));
             }
-            return Task.FromResult(new Response { Success = false, Message = "Product with given ID already exists." });
+            catch (Exception ex)
+            {
+                return Task.FromResult(ServiceResponse.CreateFailure(ex.Message, ServiceResponseStatus.InternalServerError));
+            }
         }
 
-        public Task<Response> ReceiveProductAsync(int productId, int quantity)
+        public Task<ServiceResponse> SetProductCapacityAsync(int productId, int capacity)
         {
-            if (_products.TryGetValue(productId, out var product))
+            try
             {
-                if (product.Quantity + quantity <= product.Capacity)
+                if (!_products.ContainsKey(productId))
                 {
-                    product.Quantity += quantity;
-                    return Task.FromResult(new Response { Success = true, Message = "Product received successfully." });
+                    _products.Add(productId, new Product { Id = productId, Quantity = 0, Capacity = capacity });
+                    return Task.FromResult(ServiceResponse.CreateSuccess("Product added successfully."));
                 }
-                return Task.FromResult(new Response { Success = false, Message = "Product quantity exceeds capacity." });
+                return Task.FromResult(ServiceResponse.CreateFailure("Product with given ID already exists.", ServiceResponseStatus.BadRequest));
             }
-            return Task.FromResult(new Response { Success = false, Message = "Product not found." });
+            catch (Exception ex)
+            {
+                return Task.FromResult(ServiceResponse.CreateFailure(ex.Message, ServiceResponseStatus.InternalServerError));
+            }
+            
         }
 
-        public Task<Response> DispatchProductAsync(int productId, int quantity)
+        public Task<ServiceResponse> ReceiveProductAsync(int productId, int quantity)
         {
-            if (_products.TryGetValue(productId, out var product))
+            try
             {
-                if ( quantity <= product.Quantity) {
-                    product.Quantity -= quantity;
-                    return Task.FromResult(new Response { Success = true, Message = "Product received successfully." });
+                if (_products.TryGetValue(productId, out var product))
+                {
+                    if (product.Quantity + quantity <= product.Capacity)
+                    {
+                        product.Quantity += quantity;
+                        return Task.FromResult(ServiceResponse.CreateSuccess("Product received successfully."));
+                    }
+                    return Task.FromResult(ServiceResponse.CreateFailure("Product quantity exceeds capacity.", ServiceResponseStatus.BadRequest));
                 }
-                return Task.FromResult(new Response { Success = false, Message = "Product quantity dispatch more than available." });
-                
+                return Task.FromResult(ServiceResponse.CreateFailure("Product not found.", ServiceResponseStatus.NotFound));
             }
-            return Task.FromResult(new Response { Success = false, Message = "Product not found." });
+            catch (Exception ex)
+            {
+                return Task.FromResult(ServiceResponse.CreateFailure(ex.Message, ServiceResponseStatus.InternalServerError));
+            }
+          
+        }
+
+        public Task<ServiceResponse> DispatchProductAsync(int productId, int quantity)
+        {
+
+            try
+            {
+                if (_products.TryGetValue(productId, out var product))
+                {
+                    if (quantity <= product.Quantity)
+                    {
+                        product.Quantity -= quantity;
+                        return Task.FromResult(ServiceResponse.CreateSuccess("Product received successfully."));
+                    }
+                    return Task.FromResult(ServiceResponse.CreateFailure("Product quantity dispatch more than available.", ServiceResponseStatus.BadRequest));
+
+                }
+                return Task.FromResult(ServiceResponse.CreateFailure("Product not found.", ServiceResponseStatus.NotFound));
+            }
+            catch (Exception ex)
+            {
+                return Task.FromResult(ServiceResponse.CreateFailure(ex.Message, ServiceResponseStatus.InternalServerError));
+            }
+         
         }
     }
 

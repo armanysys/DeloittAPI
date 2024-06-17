@@ -1,6 +1,7 @@
-﻿using System;
+﻿using DeloittAPI.Enum;
 using DeloittAPI.Interface;
 using Microsoft.AspNetCore.Mvc;
+using DeloittAPI.Models;
 
 namespace DeloittAPI.Controllers
 {
@@ -28,10 +29,7 @@ namespace DeloittAPI.Controllers
         public async Task<IActionResult> SetProductCapacity(int productId, int capacity)
         {
             var result = await _productService.SetProductCapacityAsync(productId, capacity);
-            if (result.Success)
-                return Ok(result);
-            else
-                return NotFound(result);
+            return result.Success ? Ok(result.Message) : HandleErrorResponse(result);
         }
 
         // POST: api/products/ReceiveProduct/{productId}/{quantity}
@@ -39,10 +37,7 @@ namespace DeloittAPI.Controllers
         public async Task<IActionResult> ReceiveProduct(int productId, int quantity)
         {
             var result = await _productService.ReceiveProductAsync(productId, quantity);
-            if (result.Success)
-                return Ok(result);
-            else
-                return  NotFound(result);
+            return result.Success ? Ok(result.Message) : HandleErrorResponse(result);
         }
 
         // POST: api/products/DispatchProduct/{productId}/{quantity}
@@ -50,13 +45,17 @@ namespace DeloittAPI.Controllers
         public async Task<IActionResult> DispatchProduct(int productId, int quantity)
         {
             var result = await _productService.DispatchProductAsync(productId, quantity);
-            if (result.Success)
-                return Ok(result);
-            else
-                return NotFound(result);
+            return result.Success ? Ok(result.Message) : HandleErrorResponse(result);
+        }
+
+        private IActionResult HandleErrorResponse(ServiceResponse response)
+        {
+            return response.Status switch
+            {
+                ServiceResponseStatus.NotFound => NotFound(response.Message),
+                ServiceResponseStatus.BadRequest => BadRequest(response.Message),
+                _ => StatusCode(StatusCodes.Status500InternalServerError, response.Message),
+            };
         }
     }
-
-
 }
-

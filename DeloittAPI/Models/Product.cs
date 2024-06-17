@@ -1,5 +1,4 @@
-﻿using System;
-namespace DeloittAPI.Models
+﻿namespace DeloittAPI.Models
 {
 	public class Product
 	{
