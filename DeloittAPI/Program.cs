@@ -20,6 +20,7 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    app.UseDeveloperExceptionPage();
     app.UseOpenApi();
     app.UseSwaggerUi(config =>
     {
@@ -27,6 +28,16 @@ if (app.Environment.IsDevelopment())
         config.Path = "/swagger";
         config.DocumentPath = "/swagger/{documentName}/swagger.json";
         config.DocExpansion = "list";
+    });
+}
+else {
+    app.UseExceptionHandler(appBuilder =>
+    {
+        appBuilder.Run(async context =>
+        {
+            context.Response.StatusCode = 500;
+            await context.Response.WriteAsync("An unexpected fault happened. Try again later.");
+        });
     });
 }
 
