@@ -3,10 +3,10 @@ namespace DeloittAPI.Models
 {
     public class ServiceResponse
     {
-        public bool Success { get; set; }
-        public IEnumerable<Product>? Data { get; set; }
-        public string Message { get; set; } = String.Empty;
-        public ServiceResponseStatus Status { get; set; }
+        private bool Success { get; set; }
+        private IEnumerable<Product>? Data { get; set; }
+        private string Message { get; set; } = String.Empty;
+        private ServiceResponseStatus Status { get; set; }
 
         public static ServiceResponse CreateSuccess(String message)
         {

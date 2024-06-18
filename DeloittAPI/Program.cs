@@ -20,6 +20,7 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    //Adds a middleware for displaying developer-friendly error pages.
     app.UseDeveloperExceptionPage();
     app.UseOpenApi();
     app.UseSwaggerUi(config =>
